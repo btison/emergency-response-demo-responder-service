@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.redhat.cajun.navy.responder.dao.ResponderDao;
 import com.redhat.cajun.navy.responder.listener.ResponderCommandMessageListener;
+import com.redhat.cajun.navy.responder.message.Message;
 import com.redhat.cajun.navy.responder.model.Responder;
 import com.redhat.cajun.navy.responder.service.ResponderService;
 import io.restassured.RestAssured;
@@ -28,10 +29,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.kafka.config.KafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.MimeTypeUtils;
@@ -40,8 +44,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableAutoConfiguration(exclude= {KafkaAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
-
+@EnableAutoConfiguration(exclude= {HibernateJpaAutoConfiguration.class})
 public class ResponderControllerIT {
 
     @Value("${local.server.port}")
@@ -55,6 +58,15 @@ public class ResponderControllerIT {
 
     @MockBean
     private ResponderDao rideDao;
+
+    @MockBean
+    private ProducerFactory<String, Message<?>> producerFactory;
+
+    @MockBean
+    private ConsumerFactory<String, String> consumerFactory;
+
+    @MockBean
+    private KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> kafkaListenerContainerFactory;
 
     @Captor
     private ArgumentCaptor<Responder> responderCaptor;
