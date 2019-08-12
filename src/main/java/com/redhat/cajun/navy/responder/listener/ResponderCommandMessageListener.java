@@ -40,7 +40,7 @@ public class ResponderCommandMessageListener {
     @Autowired
     private KafkaTemplate<String, Message<?>> kafkaTemplate;
 
-    @Value("${sender.destination.reporter-updated-event}")
+    @Value("${sender.destination.responder-updated-event}")
     private String destination;
 
     @KafkaListener(topics = "${listener.destination.update-responder-command}")
