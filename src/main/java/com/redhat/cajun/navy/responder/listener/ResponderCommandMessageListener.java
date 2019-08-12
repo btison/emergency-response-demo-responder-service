@@ -75,7 +75,7 @@ public class ResponderCommandMessageListener {
                 ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(destination, responder.getId(), eventMessage);
                 future.addCallback(
                         res -> log.debug("Sent 'ResponderUpdatedEvent' message for responder " + responder.getId()),
-                        ex -> log.error("Error sending 'IncidentReportedEvent' message for incident " + responder.getId(), ex));
+                        ex -> log.error("Error sending 'ResponderUpdatedEvent' message for responder " + responder.getId(), ex));
             }
             ack.acknowledge();
         } catch (Exception e) {
