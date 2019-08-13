@@ -23,6 +23,7 @@ import javax.persistence.Version;
         @NamedQuery(name = "Responder.findByName", query = "SELECT r FROM ResponderEntity r WHERE r.name = :name"),
         @NamedQuery(name = "Responder.availableResponders", query = "SELECT r FROM ResponderEntity r WHERE r.available = true and r.enrolled = true"),
         @NamedQuery(name = "Responder.persons", query = "SELECT r FROM ResponderEntity r where r.person = true"),
+        @NamedQuery(name = "Responder.nonPersons", query = "SELECT r from ResponderEntity r where r.person = false"),
         @NamedQuery(name = "Responder.countEnrolled", query = "SELECT COUNT(r.id) FROM ResponderEntity r WHERE r.enrolled = true"),
         @NamedQuery(name = "Responder.countActive", query = "SELECT COUNT(r.id) FROM ResponderEntity r WHERE r.enrolled = true AND r.available = false"),
         @NamedQuery(name = "Responder.deleteAll", query = "DELETE FROM ResponderEntity"),

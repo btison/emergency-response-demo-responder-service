@@ -5,6 +5,9 @@ import java.util.stream.Collectors;
 
 import com.redhat.cajun.navy.responder.dao.ResponderDao;
 import com.redhat.cajun.navy.responder.entity.ResponderEntity;
+import com.redhat.cajun.navy.responder.message.Message;
+import com.redhat.cajun.navy.responder.message.RespondersCreatedEvent;
+import com.redhat.cajun.navy.responder.message.RespondersDeletedEvent;
 import com.redhat.cajun.navy.responder.model.Responder;
 import com.redhat.cajun.navy.responder.model.ResponderStats;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -12,8 +15,12 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.concurrent.ListenableFuture;
 
 @Service
 public class ResponderService {
@@ -21,7 +28,16 @@ public class ResponderService {
     private static Logger log = LoggerFactory.getLogger(ResponderService.class);
 
     @Autowired
+    private KafkaTemplate<String, Message<?>> kafkaTemplate;
+
+    @Autowired
     private ResponderDao responderDao;
+
+    @Value("${sender.destination.responders-created-event}")
+    private String respondersCreatedDestination;
+
+    @Value("${sender.destination.responders-deleted-event}")
+    private String respondersDeletedDestination;
 
     @Transactional
     public ResponderStats getResponderStats() {
@@ -63,12 +79,32 @@ public class ResponderService {
 
         ResponderEntity entity = fromResponder(responder);
         responderDao.create(entity);
+
+        Message<RespondersCreatedEvent> message = new Message.Builder<>("RespondersCreatedEvent", "ResponderService",
+                new RespondersCreatedEvent.Builder(new Long[]{entity.getId()}).build()).build();
+
+        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersCreatedDestination, message);
+        future.addCallback(
+                result -> log.debug("Sent 'RespondersCreatedEvent' message for responder " + entity.getId()),
+                ex -> log.error("Error sending 'RespondersCreatedEvent' message", ex));
+
         return toResponder(entity);
     }
 
     @Transactional
     public void createResponders(List<Responder> responders) {
-        responders.stream().map(this::fromResponder).forEach(e -> responderDao.create(e));
+        List<Long> responderIds = responders.stream()
+                .map(this::fromResponder)
+                .map(re -> responderDao.create(re).getId())
+                .collect(Collectors.toList());
+
+        Message<RespondersCreatedEvent> message = new Message.Builder<>("RespondersCreatedEvent", "ResponderService",
+                new RespondersCreatedEvent.Builder(responderIds.toArray(new Long[0])).build()).build();
+
+        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersCreatedDestination, message);
+        future.addCallback(
+                result -> log.debug("Sent 'RespondersCreatedEvent' message for " + responderIds.size() +" responders created"),
+                ex -> log.error("Error sending 'RespondersCreatedEvent' message", ex));
     }
 
     @Transactional
@@ -102,7 +138,16 @@ public class ResponderService {
     @Transactional
     public void clear() {
         log.info("Clear called");
+        List<Long> responderIds = responderDao.nonPersonResponders().stream().map(ResponderEntity::getId).collect(Collectors.toList());
         responderDao.clear();
+
+        Message<RespondersDeletedEvent> message = new Message.Builder<>("RespondersDeletedEvent", "ResponderService",
+                new RespondersDeletedEvent.Builder(responderIds.toArray(new Long[0])).build()).build();
+
+        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersDeletedDestination, message);
+        future.addCallback(
+                result -> log.debug("Sent 'RespondersDeletedEvent' message for " + responderIds.size() +" responders deleted"),
+                ex -> log.error("Error sending 'RespondersDeletedEvent' message", ex));
     }
 
     private boolean stateChanged(ResponderEntity current, ResponderEntity updated) {

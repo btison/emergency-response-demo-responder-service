@@ -5,9 +5,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,6 +23,9 @@ import java.util.List;
 
 import com.redhat.cajun.navy.responder.dao.ResponderDao;
 import com.redhat.cajun.navy.responder.entity.ResponderEntity;
+import com.redhat.cajun.navy.responder.message.Message;
+import com.redhat.cajun.navy.responder.message.RespondersCreatedEvent;
+import com.redhat.cajun.navy.responder.message.RespondersDeletedEvent;
 import com.redhat.cajun.navy.responder.model.Responder;
 import com.redhat.cajun.navy.responder.model.ResponderStats;
 import org.apache.commons.lang3.tuple.Triple;
@@ -30,14 +34,26 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.stubbing.Answer;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.util.concurrent.ListenableFuture;
 
 public class ResponderServiceTest {
 
     @Mock
     private ResponderDao responderDao;
 
+    @Mock
+    private KafkaTemplate<String, Message<?>> kafkaTemplate;
+
     @Captor
     private ArgumentCaptor<ResponderEntity> entityCaptor;
+
+    @Captor
+    private ArgumentCaptor<Message<RespondersCreatedEvent>> respondersCreatedEventMessageCaptor;
+
+    @Captor
+    private ArgumentCaptor<Message<RespondersDeletedEvent>> respondersDeletedEventMessageCaptor;
 
     private ResponderService service;
 
@@ -46,6 +62,11 @@ public class ResponderServiceTest {
         initMocks(this);
         service = new ResponderService();
         setField(service, null, responderDao, ResponderDao.class);
+        setField(service, null, kafkaTemplate, KafkaTemplate.class);
+        setField(service, "respondersCreatedDestination", "test-topic", String.class);
+        setField(service, "respondersDeletedDestination", "test-topic", String.class);
+        ListenableFuture future = mock(ListenableFuture.class);
+        when(kafkaTemplate.send(anyString(), any())).thenReturn(future);
     }
 
     @Test
@@ -356,14 +377,11 @@ public class ResponderServiceTest {
                 .enrolled(true)
                 .build();
 
-        doAnswer(invocation -> {
+        when(responderDao.create(any(ResponderEntity.class))).thenAnswer((Answer<ResponderEntity>) invocation -> {
             ResponderEntity entity = invocation.getArgument(0);
-            assertThat(entity.getId(), equalTo(0L));
-
             setField(entity, "id", 100, null);
-
-            return null;
-        }).when(responderDao).create(any(ResponderEntity.class));
+            return entity;
+        });
 
         Responder created = service.createResponder(toCreate);
 
@@ -377,6 +395,17 @@ public class ResponderServiceTest {
         assertThat(created.isAvailable(), equalTo(true));
         assertThat(created.isPerson(), equalTo(true));
         assertThat(created.isEnrolled(), equalTo(true));
+
+        verify(kafkaTemplate).send(eq("test-topic"), respondersCreatedEventMessageCaptor.capture());
+        Message<RespondersCreatedEvent> message = respondersCreatedEventMessageCaptor.getValue();
+        assertThat(message.getId(), notNullValue());
+        assertThat(message.getInvokingService(), equalTo("ResponderService"));
+        assertThat(message.getBody(), notNullValue());
+        RespondersCreatedEvent event = message.getBody();
+        assertThat(event.getCreated(), equalTo(1));
+        assertThat(event.getResponders(), notNullValue());
+        assertThat(event.getResponders().length, equalTo(1));
+        assertThat(event.getResponders()[0], equalTo(100L));
     }
 
     @Test
@@ -461,16 +490,31 @@ public class ResponderServiceTest {
                 .enrolled(true)
                 .build();
 
-        doAnswer(invocation -> {
+        when(responderDao.create(any(ResponderEntity.class))).thenAnswer((Answer<ResponderEntity>) invocation -> {
             ResponderEntity entity = invocation.getArgument(0);
-            assertThat(entity.getId(), equalTo(0L));
-            setField(entity, "id", 100, null);
-            return null;
-        }).when(responderDao).create(any(ResponderEntity.class));
+            setField(entity, "id", 1, null);
+            return entity;
+        }).thenAnswer((Answer<ResponderEntity>) invocation -> {
+            ResponderEntity entity = invocation.getArgument(0);
+            setField(entity, "id", 2, null);
+            return entity;
+        });
 
         service.createResponders(Arrays.asList(toCreate1, toCreate2));
 
         verify(responderDao, times(2)).create(entityCaptor.capture());
+
+        verify(kafkaTemplate).send(eq("test-topic"), respondersCreatedEventMessageCaptor.capture());
+        Message<RespondersCreatedEvent> message = respondersCreatedEventMessageCaptor.getValue();
+        assertThat(message.getId(), notNullValue());
+        assertThat(message.getInvokingService(), equalTo("ResponderService"));
+        assertThat(message.getBody(), notNullValue());
+        RespondersCreatedEvent event = message.getBody();
+        assertThat(event.getCreated(), equalTo(2));
+        assertThat(event.getResponders(), notNullValue());
+        assertThat(event.getResponders().length, equalTo(2));
+        assertThat(event.getResponders()[0], equalTo(1L));
+        assertThat(event.getResponders()[1], equalTo(2L));
     }
 
     @Test
@@ -481,8 +525,54 @@ public class ResponderServiceTest {
 
     @Test
     public void testClear() {
+
+        ResponderEntity re1 = new ResponderEntity.Builder(1L, 0L)
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(true)
+                .person(false)
+                .enrolled(true)
+                .build();
+
+        ResponderEntity re2 = new ResponderEntity.Builder(2L, 0L)
+                .name("John Foo")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(true)
+                .person(false)
+                .enrolled(true)
+                .build();
+
+        List<ResponderEntity> reList = new ArrayList<>();
+        reList.add(re1);
+        reList.add(re2);
+
+        when(responderDao.nonPersonResponders()).thenReturn(reList);
+
         service.clear();
+        verify(responderDao).nonPersonResponders();
         verify(responderDao).clear();
+
+        verify(kafkaTemplate).send(eq("test-topic"), respondersDeletedEventMessageCaptor.capture());
+        Message<RespondersDeletedEvent> message = respondersDeletedEventMessageCaptor.getValue();
+        assertThat(message.getId(), notNullValue());
+        assertThat(message.getMessageType(), equalTo("RespondersDeletedEvent"));
+        assertThat(message.getInvokingService(), equalTo("ResponderService"));
+        assertThat(message.getBody(), notNullValue());
+        RespondersDeletedEvent event = message.getBody();
+        assertThat(event.getDeleted(), equalTo(2));
+        assertThat(event.getResponders(), notNullValue());
+        assertThat(event.getResponders().length, equalTo(2));
+        assertThat(event.getResponders()[0], equalTo(1L));
+        assertThat(event.getResponders()[1], equalTo(2L));
+
     }
 
 }
