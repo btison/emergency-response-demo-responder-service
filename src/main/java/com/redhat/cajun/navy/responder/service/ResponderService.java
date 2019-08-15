@@ -83,7 +83,7 @@ public class ResponderService {
         Message<RespondersCreatedEvent> message = new Message.Builder<>("RespondersCreatedEvent", "ResponderService",
                 new RespondersCreatedEvent.Builder(new Long[]{entity.getId()}).build()).build();
 
-        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersCreatedDestination, message);
+        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersCreatedDestination, "RespondersCreated", message);
         future.addCallback(
                 result -> log.debug("Sent 'RespondersCreatedEvent' message for responder " + entity.getId()),
                 ex -> log.error("Error sending 'RespondersCreatedEvent' message", ex));
@@ -101,7 +101,7 @@ public class ResponderService {
         Message<RespondersCreatedEvent> message = new Message.Builder<>("RespondersCreatedEvent", "ResponderService",
                 new RespondersCreatedEvent.Builder(responderIds.toArray(new Long[0])).build()).build();
 
-        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersCreatedDestination, message);
+        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersCreatedDestination, "RespondersCreated", message);
         future.addCallback(
                 result -> log.debug("Sent 'RespondersCreatedEvent' message for " + responderIds.size() +" responders created"),
                 ex -> log.error("Error sending 'RespondersCreatedEvent' message", ex));
@@ -144,7 +144,7 @@ public class ResponderService {
         Message<RespondersDeletedEvent> message = new Message.Builder<>("RespondersDeletedEvent", "ResponderService",
                 new RespondersDeletedEvent.Builder(responderIds.toArray(new Long[0])).build()).build();
 
-        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersDeletedDestination, message);
+        ListenableFuture<SendResult<String, Message<?>>> future = kafkaTemplate.send(respondersDeletedDestination, "RespondersDeleted", message);
         future.addCallback(
                 result -> log.debug("Sent 'RespondersDeletedEvent' message for " + responderIds.size() +" responders deleted"),
                 ex -> log.error("Error sending 'RespondersDeletedEvent' message", ex));

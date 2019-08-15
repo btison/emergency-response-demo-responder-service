@@ -66,7 +66,7 @@ public class ResponderServiceTest {
         setField(service, "respondersCreatedDestination", "test-topic", String.class);
         setField(service, "respondersDeletedDestination", "test-topic", String.class);
         ListenableFuture future = mock(ListenableFuture.class);
-        when(kafkaTemplate.send(anyString(), any())).thenReturn(future);
+        when(kafkaTemplate.send(anyString(), anyString(), any())).thenReturn(future);
     }
 
     @Test
@@ -396,7 +396,7 @@ public class ResponderServiceTest {
         assertThat(created.isPerson(), equalTo(true));
         assertThat(created.isEnrolled(), equalTo(true));
 
-        verify(kafkaTemplate).send(eq("test-topic"), respondersCreatedEventMessageCaptor.capture());
+        verify(kafkaTemplate).send(eq("test-topic"), eq("RespondersCreated"), respondersCreatedEventMessageCaptor.capture());
         Message<RespondersCreatedEvent> message = respondersCreatedEventMessageCaptor.getValue();
         assertThat(message.getId(), notNullValue());
         assertThat(message.getInvokingService(), equalTo("ResponderService"));
@@ -504,7 +504,7 @@ public class ResponderServiceTest {
 
         verify(responderDao, times(2)).create(entityCaptor.capture());
 
-        verify(kafkaTemplate).send(eq("test-topic"), respondersCreatedEventMessageCaptor.capture());
+        verify(kafkaTemplate).send(eq("test-topic"), eq("RespondersCreated"), respondersCreatedEventMessageCaptor.capture());
         Message<RespondersCreatedEvent> message = respondersCreatedEventMessageCaptor.getValue();
         assertThat(message.getId(), notNullValue());
         assertThat(message.getInvokingService(), equalTo("ResponderService"));
@@ -560,7 +560,7 @@ public class ResponderServiceTest {
         verify(responderDao).nonPersonResponders();
         verify(responderDao).clear();
 
-        verify(kafkaTemplate).send(eq("test-topic"), respondersDeletedEventMessageCaptor.capture());
+        verify(kafkaTemplate).send(eq("test-topic"), eq("RespondersDeleted"), respondersDeletedEventMessageCaptor.capture());
         Message<RespondersDeletedEvent> message = respondersDeletedEventMessageCaptor.getValue();
         assertThat(message.getId(), notNullValue());
         assertThat(message.getMessageType(), equalTo("RespondersDeletedEvent"));
