@@ -15,8 +15,9 @@ public class ResponderDao {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public void create(ResponderEntity responder) {
+    public ResponderEntity create(ResponderEntity responder) {
         entityManager.persist(responder);
+        return responder;
     }
 
     void deleteAll() {
@@ -47,6 +48,10 @@ public class ResponderDao {
 
     public List<ResponderEntity> availableResponders() {
         return entityManager.createNamedQuery("Responder.availableResponders", ResponderEntity.class).getResultList();
+    }
+
+    public List<ResponderEntity> nonPersonResponders() {
+        return entityManager.createNamedQuery("Responder.nonPersons", ResponderEntity.class).getResultList();
     }
 
     public void reset() {
