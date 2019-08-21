@@ -172,6 +172,121 @@ public class ResponderDaoTest {
     }
 
     @Test
+    @Transactional
+    public void testAllResponders() {
+
+        responderDao.deleteAll();
+
+        ResponderEntity responder1 = new ResponderEntity.Builder()
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(false)
+                .enrolled(false)
+                .person(true)
+                .build();
+
+        ResponderEntity responder2 = new ResponderEntity.Builder()
+                .name("John Foo")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .enrolled(true)
+                .person(false)
+                .build();
+
+        responderDao.create(responder1);
+        responderDao.create(responder2);
+
+        List<ResponderEntity> responders = responderDao.allResponders();
+        assertThat(responders.size(), equalTo(2));
+    }
+
+    @Test
+    @Transactional
+    public void testPersonResponders() {
+
+        responderDao.deleteAll();
+
+        ResponderEntity responder1 = new ResponderEntity.Builder()
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(false)
+                .enrolled(false)
+                .person(true)
+                .build();
+
+        ResponderEntity responder2 = new ResponderEntity.Builder()
+                .name("John Foo")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .enrolled(true)
+                .person(false)
+                .build();
+
+        responderDao.create(responder1);
+        responderDao.create(responder2);
+
+        List<ResponderEntity> responders = responderDao.personResponders();
+        assertThat(responders.size(), equalTo(1));
+        ResponderEntity responder = responders.get(0);
+        assertThat(responder.getName(), equalTo("John Doe"));
+    }
+
+    @Test
+    @Transactional
+    public void testNonPersonResponders() {
+
+        responderDao.deleteAll();
+
+        ResponderEntity responder1 = new ResponderEntity.Builder()
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(false)
+                .enrolled(false)
+                .person(true)
+                .build();
+
+        ResponderEntity responder2 = new ResponderEntity.Builder()
+                .name("John Foo")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .enrolled(true)
+                .person(false)
+                .build();
+
+        responderDao.create(responder1);
+        responderDao.create(responder2);
+
+        List<ResponderEntity> responders = responderDao.nonPersonResponders();
+        assertThat(responders.size(), equalTo(1));
+        ResponderEntity responder = responders.get(0);
+        assertThat(responder.getName(), equalTo("John Foo"));
+    }
+
+    @Test
     public void testFindById() {
 
         responderDao.deleteAll();

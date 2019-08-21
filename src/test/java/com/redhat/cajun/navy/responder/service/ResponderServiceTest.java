@@ -162,6 +162,116 @@ public class ResponderServiceTest {
     }
 
     @Test
+    public void testAllResponders() {
+
+        ResponderEntity responder1 = new ResponderEntity.Builder(1L, 0L)
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(true)
+                .person(true)
+                .enrolled(true)
+                .build();
+
+        ResponderEntity responder2 = new ResponderEntity.Builder(2L, 0L)
+                .name("John Foo")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .person(true)
+                .enrolled(true)
+                .build();
+
+        List<ResponderEntity> responderEntities = new ArrayList<>();
+        responderEntities.add(responder1);
+        responderEntities.add(responder2);
+
+        when(responderDao.allResponders()).thenReturn(responderEntities);
+
+        List<Responder> responders = service.allResponders();
+        assertThat(responders, notNullValue());
+        assertThat(responders.size(), equalTo(2));
+        Responder responder = responders.get(0);
+        assertThat(responder.getId(), anyOf(equalTo("1"), equalTo("2")));
+        ResponderEntity matched;
+        if (responder.getId().equals("1")) {
+            matched = responder1;
+        } else {
+            matched = responder2;
+        }
+        assertThat(responder.getName(), equalTo(matched.getName()));
+        assertThat(responder.getPhoneNumber(), equalTo(matched.getPhoneNumber()));
+        assertThat(responder.getLatitude(), equalTo(matched.getCurrentPositionLatitude()));
+        assertThat(responder.getLongitude(), equalTo(matched.getCurrentPositionLongitude()));
+        assertThat(responder.getBoatCapacity(), equalTo(matched.getBoatCapacity()));
+        assertThat(responder.isMedicalKit(),equalTo(matched.getMedicalKit()));
+        assertThat(responder.isAvailable(), equalTo(matched.isAvailable()));
+        assertThat(responder.isPerson(), equalTo(matched.isPerson()));
+        assertThat(responder.isEnrolled(), equalTo(matched.isEnrolled()));
+    }
+
+    @Test
+    public void testPersonResponders() {
+
+        ResponderEntity responder1 = new ResponderEntity.Builder(1L, 0L)
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(true)
+                .person(true)
+                .enrolled(true)
+                .build();
+
+        ResponderEntity responder2 = new ResponderEntity.Builder(2L, 0L)
+                .name("John Foo")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .person(true)
+                .enrolled(true)
+                .build();
+
+        List<ResponderEntity> responderEntities = new ArrayList<>();
+        responderEntities.add(responder1);
+        responderEntities.add(responder2);
+
+        when(responderDao.personResponders()).thenReturn(responderEntities);
+
+        List<Responder> responders = service.personResponders();
+        assertThat(responders, notNullValue());
+        assertThat(responders.size(), equalTo(2));
+        Responder responder = responders.get(0);
+        assertThat(responder.getId(), anyOf(equalTo("1"), equalTo("2")));
+        ResponderEntity matched;
+        if (responder.getId().equals("1")) {
+            matched = responder1;
+        } else {
+            matched = responder2;
+        }
+        assertThat(responder.getName(), equalTo(matched.getName()));
+        assertThat(responder.getPhoneNumber(), equalTo(matched.getPhoneNumber()));
+        assertThat(responder.getLatitude(), equalTo(matched.getCurrentPositionLatitude()));
+        assertThat(responder.getLongitude(), equalTo(matched.getCurrentPositionLongitude()));
+        assertThat(responder.getBoatCapacity(), equalTo(matched.getBoatCapacity()));
+        assertThat(responder.isMedicalKit(),equalTo(matched.getMedicalKit()));
+        assertThat(responder.isAvailable(), equalTo(matched.isAvailable()));
+        assertThat(responder.isPerson(), equalTo(matched.isPerson()));
+        assertThat(responder.isEnrolled(), equalTo(matched.isEnrolled()));
+    }
+
+    @Test
     public void testUpdateResponderAvailable() {
 
         Responder toUpdate = new Responder.Builder("1").available(false).build();

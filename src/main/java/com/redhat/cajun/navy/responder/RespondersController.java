@@ -52,6 +52,16 @@ public class RespondersController {
         return new ResponseEntity<>(responderService.availableResponders(), HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/responders", method = RequestMethod.GET, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Responder>> allResponders() {
+        return new ResponseEntity<>(responderService.allResponders(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/responders/person", method = RequestMethod.GET, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Responder>> personResponders() {
+        return new ResponseEntity<>(responderService.personResponders(), HttpStatus.OK);
+    }
+
     @RequestMapping(value = "/responder", method = RequestMethod.POST, consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity createResponder(@RequestBody Responder responder) {
 
