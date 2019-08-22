@@ -50,8 +50,16 @@ public class ResponderDao {
         return entityManager.createNamedQuery("Responder.availableResponders", ResponderEntity.class).getResultList();
     }
 
+    public List<ResponderEntity> allResponders() {
+        return entityManager.createNamedQuery("Responder.allResponders", ResponderEntity.class).getResultList();
+    }
+
     public List<ResponderEntity> nonPersonResponders() {
         return entityManager.createNamedQuery("Responder.nonPersons", ResponderEntity.class).getResultList();
+    }
+
+    public List<ResponderEntity> personResponders() {
+        return entityManager.createNamedQuery("Responder.persons", ResponderEntity.class).getResultList();
     }
 
     public void reset() {

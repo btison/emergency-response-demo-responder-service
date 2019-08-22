@@ -79,6 +79,35 @@ public class ResponderControllerIT {
                 .contentType(ContentType.JSON)
                 .body("size()", is(2));
 
+        verify(responderService).availableResponders();
+    }
+
+    @Test
+    public void testAllResponders() {
+
+        initService();
+
+        given().request().get("/responders")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+        verify(responderService).allResponders();
+    }
+
+    @Test
+    public void testPersonResponders() {
+
+        initService();
+
+        given().request().get("/responders/person")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+        verify(responderService).personResponders();
     }
 
     @Test
@@ -229,6 +258,7 @@ public class ResponderControllerIT {
                 .medicalKit(true)
                 .available(true)
                 .enrolled(true)
+                .person(true)
                 .build();
 
         Responder responder2 = new Responder.Builder("2")
@@ -240,6 +270,7 @@ public class ResponderControllerIT {
                 .medicalKit(true)
                 .available(true)
                 .enrolled(true)
+                .person(true)
                 .build();
 
         List<Responder> responders = new ArrayList<>();
@@ -247,6 +278,8 @@ public class ResponderControllerIT {
         responders.add(responder2);
 
         when(responderService.availableResponders()).thenReturn(responders);
+        when(responderService.allResponders()).thenReturn(responders);
+        when(responderService.personResponders()).thenReturn(responders);
     }
 
 }
