@@ -15,11 +15,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 
 import com.redhat.cajun.navy.responder.message.Message;
 import com.redhat.cajun.navy.responder.message.ResponderUpdatedEvent;
 import com.redhat.cajun.navy.responder.model.Responder;
 import com.redhat.cajun.navy.responder.service.ResponderService;
+import io.opentracing.Tracer;
+import io.opentracing.util.GlobalTracer;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,6 +60,7 @@ public class ResponderCommandMessageListenerTest {
         setField(messageListener, null, responderService, ResponderService.class);
         setField(messageListener, null, kafkaTemplate, KafkaTemplate.class);
         setField(messageListener, "destination", "test-topic", String.class);
+        setField(messageListener, null, GlobalTracer.get(), Tracer.class);
         ListenableFuture future = mock(ListenableFuture.class);
         when(kafkaTemplate.send(anyString(), anyString(), any(Message.class))).thenReturn(future);
     }
@@ -91,7 +95,7 @@ public class ResponderCommandMessageListenerTest {
                 .build();
         when(responderService.updateResponder(any(Responder.class))).thenReturn(new ImmutableTriple<>(true, "ok", updated));
 
-        messageListener.processMessage(json,"topic", 1, ack);
+        messageListener.processMessage(json,"topic", 1, new HashMap<String, Object>(), ack);
 
         verify(responderService).updateResponder(responderCaptor.capture());
         Responder captured = responderCaptor.getValue();
@@ -146,7 +150,7 @@ public class ResponderCommandMessageListenerTest {
                 .build();
         when(responderService.updateResponder(any(Responder.class))).thenReturn(new ImmutableTriple<>(true, "ok", updated));
 
-        messageListener.processMessage(json,"topic", 1, ack);
+        messageListener.processMessage(json,"topic", 1, new HashMap<String, Object>(), ack);
 
         verify(responderService).updateResponder(responderCaptor.capture());
         Responder captured = responderCaptor.getValue();
@@ -174,7 +178,7 @@ public class ResponderCommandMessageListenerTest {
                 "\"body\":{} " +
                 "}";
 
-        messageListener.processMessage(json,"topic", 1, ack);
+        messageListener.processMessage(json,"topic", 1, new HashMap<String, Object>(), ack);
 
         verify(responderService, never()).updateResponder(any(Responder.class));
         verify(ack).acknowledge();
@@ -185,7 +189,7 @@ public class ResponderCommandMessageListenerTest {
         String json = "{\"field1\":\"value1\"," +
                 "\"field2\":\"value2\"}";
 
-        messageListener.processMessage(json,"topic", 1, ack);
+        messageListener.processMessage(json,"topic", 1, new HashMap<String, Object>(), ack);
 
         verify(responderService, never()).updateResponder(any(Responder.class));
         verify(ack).acknowledge();

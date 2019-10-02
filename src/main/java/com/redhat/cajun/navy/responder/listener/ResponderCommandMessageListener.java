@@ -1,6 +1,7 @@
 package com.redhat.cajun.navy.responder.listener;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -11,6 +12,10 @@ import com.redhat.cajun.navy.responder.message.ResponderUpdatedEvent;
 import com.redhat.cajun.navy.responder.message.UpdateResponderCommand;
 import com.redhat.cajun.navy.responder.model.Responder;
 import com.redhat.cajun.navy.responder.service.ResponderService;
+import com.redhat.cajun.navy.responder.tracing.KafkaTracingUtils;
+import io.opentracing.Scope;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +27,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -40,15 +46,28 @@ public class ResponderCommandMessageListener {
     @Autowired
     private KafkaTemplate<String, Message<?>> kafkaTemplate;
 
+    @Autowired
+    private Tracer tracer;
+
     @Value("${sender.destination.responder-updated-event}")
     private String destination;
 
     @KafkaListener(topics = "${listener.destination.update-responder-command}")
     public void processMessage(@Payload String messageAsJson,
                                @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                               @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition, Acknowledgment ack) {
+                               @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
+                               @Headers Map<String, Object> headers, Acknowledgment ack) {
 
-        acceptMessageType(messageAsJson, ack).ifPresent(m -> processUpdateResponderCommand(messageAsJson, topic, partition, ack));
+        acceptMessageType(messageAsJson, ack).ifPresent(s -> {
+            Span span = KafkaTracingUtils.buildChildSpan("processUpdateResponderCommand", headers, tracer);
+            try(Scope scope = tracer.activateSpan(span)) {
+                processUpdateResponderCommand(messageAsJson, topic, partition, ack);
+            } finally {
+                if (span != null) {
+                    span.finish();
+                }
+            }
+        });
     }
 
     private void processUpdateResponderCommand(String messageAsJson, String topic, int partition, Acknowledgment ack) {
