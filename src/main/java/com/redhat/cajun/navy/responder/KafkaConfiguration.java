@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.redhat.cajun.navy.responder.message.Message;
+import io.opentracing.contrib.kafka.spring.TracingConsumerFactory;
+import io.opentracing.contrib.kafka.spring.TracingProducerFactory;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -42,7 +44,7 @@ public class KafkaConfiguration {
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(configProps);
+        return new TracingProducerFactory<>(new DefaultKafkaProducerFactory<>(configProps));
     }
 
     @Bean
@@ -59,7 +61,7 @@ public class KafkaConfiguration {
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, Boolean.FALSE);
-        return new DefaultKafkaConsumerFactory<>(configProps);
+        return new TracingConsumerFactory<>(new DefaultKafkaConsumerFactory<>(configProps));
     }
 
     @Bean
