@@ -75,6 +75,23 @@ public class ResponderService {
     }
 
     @Transactional
+    public List<Responder> availableResponders(int limit, int offset) {
+
+        return responderDao.availableResponders(limit, offset).stream().map(responderEntity -> new Responder.Builder(Long.toString(responderEntity.getId()))
+                .name(responderEntity.getName())
+                .phoneNumber(responderEntity.getPhoneNumber())
+                .latitude(responderEntity.getCurrentPositionLatitude())
+                .longitude(responderEntity.getCurrentPositionLongitude())
+                .boatCapacity(responderEntity.getBoatCapacity())
+                .medicalKit(responderEntity.getMedicalKit())
+                .available(responderEntity.isAvailable())
+                .person(responderEntity.isPerson())
+                .enrolled(responderEntity.isEnrolled())
+                .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
     public List<Responder> allResponders() {
 
         return responderDao.allResponders().stream().map(responderEntity -> new Responder.Builder(Long.toString(responderEntity.getId()))

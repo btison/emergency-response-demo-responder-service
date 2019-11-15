@@ -1,6 +1,7 @@
 package com.redhat.cajun.navy.responder;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.redhat.cajun.navy.responder.model.Responder;
 import com.redhat.cajun.navy.responder.model.ResponderStats;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -48,8 +50,18 @@ public class RespondersController {
     }
 
     @RequestMapping(value = "/responders/available", method = RequestMethod.GET, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Responder>> activeResponders() {
-        return new ResponseEntity<>(responderService.availableResponders(), HttpStatus.OK);
+    public ResponseEntity<List<Responder>> availableResponders(@RequestParam Optional<String> limit, @RequestParam Optional<String> offset) {
+        List<Responder> responders;
+        if (limit.isPresent()) {
+            if (offset.isPresent()) {
+                responders = responderService.availableResponders(Integer.parseInt(limit.get()), Integer.parseInt(offset.get()));
+            } else {
+                responders = responderService.availableResponders(Integer.parseInt(limit.get()),0);
+            }
+        } else {
+            responders = responderService.availableResponders();
+        }
+        return new ResponseEntity<>(responders, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/responders", method = RequestMethod.GET, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
