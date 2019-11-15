@@ -82,6 +82,15 @@ public class ResponderDao {
         return entityManager.createNamedQuery("Responder.persons", ResponderEntity.class).getResultList();
     }
 
+    public List<ResponderEntity> personResponders(int limit, int offset) {
+        TypedQuery<ResponderEntity> q = entityManager.createNamedQuery("Responder.persons", ResponderEntity.class);
+        if (limit > 0 && offset >= 0) {
+            q.setMaxResults(limit);
+            q.setFirstResult(offset);
+        }
+        return q.getResultList();
+    }
+
     public void reset() {
         List<ResponderEntity> results = entityManager.createNamedQuery("Responder.allResponders", ResponderEntity.class).getResultList();
         results.stream()
@@ -112,5 +121,4 @@ public class ResponderDao {
     public Long activeRespondersCount() {
         return (Long) entityManager.createNamedQuery("Responder.countActive").getSingleResult();
     }
-
 }

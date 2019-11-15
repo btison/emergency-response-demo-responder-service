@@ -1,6 +1,7 @@
 package com.redhat.cajun.navy.responder.dao;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.OptimisticLockException;
 
@@ -245,6 +247,83 @@ public class ResponderDaoTest {
         assertThat(responders.size(), equalTo(1));
         ResponderEntity responder = responders.get(0);
         assertThat(responder.getName(), equalTo("John Doe"));
+    }
+
+    @Test
+    @Transactional
+    public void testPersonRespondersWithLimit() {
+
+        responderDao.deleteAll();
+
+        ResponderEntity responder1 = new ResponderEntity.Builder()
+                .name("John Foo I")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .enrolled(true)
+                .person(true)
+                .build();
+
+        ResponderEntity responder2 = new ResponderEntity.Builder()
+                .name("John Foo II")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .enrolled(true)
+                .person(false)
+                .build();
+
+        ResponderEntity responder3 = new ResponderEntity.Builder()
+                .name("John Foo III")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .enrolled(true)
+                .person(true)
+                .build();
+
+        ResponderEntity responder4 = new ResponderEntity.Builder()
+                .name("John Foo IV")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(true)
+                .enrolled(true)
+                .person(true)
+                .build();
+
+        ResponderEntity responder5 = new ResponderEntity.Builder()
+                .name("John Foo V")
+                .phoneNumber("999-888-777")
+                .currentPositionLatitude(new BigDecimal("35.12345"))
+                .currentPositionLongitude(new BigDecimal("-75.98765"))
+                .boatCapacity(2)
+                .medicalKit(true)
+                .available(false)
+                .enrolled(true)
+                .person(true)
+                .build();
+
+        responderDao.create(responder1);
+        responderDao.create(responder2);
+        responderDao.create(responder3);
+        responderDao.create(responder4);
+        responderDao.create(responder5);
+
+        List<ResponderEntity> responders = responderDao.personResponders(3, 0);
+        assertThat(responders.size(), equalTo(3));
+        assertThat(responders.stream().map(ResponderEntity::isPerson).collect(Collectors.toList()), everyItem(equalTo(true)));
     }
 
     @Test
