@@ -127,6 +127,34 @@ public class ResponderControllerIT {
     }
 
     @Test
+    public void testAllRespondersWithLimitNoOffset() {
+
+        initService();
+
+        given().request().get("/responders?limit=10")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+        verify(responderService).allResponders(10, 0);
+    }
+
+    @Test
+    public void testAllRespondersWithLimitAndOffset() {
+
+        initService();
+
+        given().request().get("/responders?limit=10&offset=2")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+        verify(responderService).allResponders(10, 2);
+    }
+
+    @Test
     public void testPersonResponders() {
 
         initService();
@@ -310,6 +338,7 @@ public class ResponderControllerIT {
         when(responderService.availableResponders()).thenReturn(responders);
         when(responderService.availableResponders(any(Integer.class), any(Integer.class))).thenReturn(responders);
         when(responderService.allResponders()).thenReturn(responders);
+        when(responderService.allResponders(any(Integer.class), any(Integer.class))).thenReturn(responders);
         when(responderService.personResponders()).thenReturn(responders);
     }
 

@@ -65,8 +65,18 @@ public class RespondersController {
     }
 
     @RequestMapping(value = "/responders", method = RequestMethod.GET, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Responder>> allResponders() {
-        return new ResponseEntity<>(responderService.allResponders(), HttpStatus.OK);
+    public ResponseEntity<List<Responder>> allResponders(@RequestParam Optional<String> limit, @RequestParam Optional<String> offset) {
+        List<Responder> responders;
+        if (limit.isPresent()) {
+            if (offset.isPresent()) {
+                responders = responderService.allResponders(Integer.parseInt(limit.get()), Integer.parseInt(offset.get()));
+            } else {
+                responders = responderService.allResponders(Integer.parseInt(limit.get()),0);
+            }
+        } else {
+            responders = responderService.allResponders();
+        }
+        return new ResponseEntity<>(responders, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/responders/person", method = RequestMethod.GET, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)

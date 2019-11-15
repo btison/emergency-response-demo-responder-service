@@ -79,6 +79,12 @@ public class ResponderService {
     }
 
     @Transactional
+    public List<Responder> allResponders(int limit, int offset) {
+        return responderDao.allResponders(limit, offset).stream().map(this::toResponder)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
     public List<Responder> personResponders() {
 
         return responderDao.personResponders().stream().map(this::toResponder)
@@ -249,4 +255,5 @@ public class ResponderService {
                 .enrolled(responder.isEnrolled())
                 .build();
     }
+
 }

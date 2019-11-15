@@ -125,6 +125,34 @@ public class ResponderControllerMvcTest {
     }
 
     @Test
+    public void testAllRespondersWithLimitNoOffset() throws Exception {
+
+        initService();
+
+        final ResultActions result = mockMvc.perform(
+                get("/responders?limit=10").accept(MimeTypeUtils.APPLICATION_JSON_VALUE));
+
+        result.andExpect(status().isOk());
+        result.andExpect(jsonPath("$.length()").value(2));
+
+        verify(responderService).allResponders(10, 0);
+    }
+
+    @Test
+    public void testAllRespondersWithLimitAndOffset() throws Exception {
+
+        initService();
+
+        final ResultActions result = mockMvc.perform(
+                get("/responders?limit=10&offset=5").accept(MimeTypeUtils.APPLICATION_JSON_VALUE));
+
+        result.andExpect(status().isOk());
+        result.andExpect(jsonPath("$.length()").value(2));
+
+        verify(responderService).allResponders(10, 5);
+    }
+
+    @Test
     public void testPersonResponders() throws Exception {
 
         initService();
@@ -275,6 +303,7 @@ public class ResponderControllerMvcTest {
         when(responderService.availableResponders()).thenReturn(responders);
         when(responderService.availableResponders(any(Integer.class), any(Integer.class))).thenReturn(responders);
         when(responderService.allResponders()).thenReturn(responders);
+        when(responderService.allResponders(any(Integer.class), any(Integer.class))).thenReturn(responders);
         when(responderService.personResponders()).thenReturn(responders);
     }
 
