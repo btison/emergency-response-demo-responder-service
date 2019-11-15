@@ -60,68 +60,28 @@ public class ResponderService {
     @Transactional
     public List<Responder> availableResponders() {
 
-        return responderDao.availableResponders().stream().map(responderEntity -> new Responder.Builder(Long.toString(responderEntity.getId()))
-                .name(responderEntity.getName())
-                .phoneNumber(responderEntity.getPhoneNumber())
-                .latitude(responderEntity.getCurrentPositionLatitude())
-                .longitude(responderEntity.getCurrentPositionLongitude())
-                .boatCapacity(responderEntity.getBoatCapacity())
-                .medicalKit(responderEntity.getMedicalKit())
-                .available(responderEntity.isAvailable())
-                .person(responderEntity.isPerson())
-                .enrolled(responderEntity.isEnrolled())
-                .build())
+        return responderDao.availableResponders().stream().map(this::toResponder)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public List<Responder> availableResponders(int limit, int offset) {
 
-        return responderDao.availableResponders(limit, offset).stream().map(responderEntity -> new Responder.Builder(Long.toString(responderEntity.getId()))
-                .name(responderEntity.getName())
-                .phoneNumber(responderEntity.getPhoneNumber())
-                .latitude(responderEntity.getCurrentPositionLatitude())
-                .longitude(responderEntity.getCurrentPositionLongitude())
-                .boatCapacity(responderEntity.getBoatCapacity())
-                .medicalKit(responderEntity.getMedicalKit())
-                .available(responderEntity.isAvailable())
-                .person(responderEntity.isPerson())
-                .enrolled(responderEntity.isEnrolled())
-                .build())
+        return responderDao.availableResponders(limit, offset).stream().map(this::toResponder)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public List<Responder> allResponders() {
 
-        return responderDao.allResponders().stream().map(responderEntity -> new Responder.Builder(Long.toString(responderEntity.getId()))
-                .name(responderEntity.getName())
-                .phoneNumber(responderEntity.getPhoneNumber())
-                .latitude(responderEntity.getCurrentPositionLatitude())
-                .longitude(responderEntity.getCurrentPositionLongitude())
-                .boatCapacity(responderEntity.getBoatCapacity())
-                .medicalKit(responderEntity.getMedicalKit())
-                .available(responderEntity.isAvailable())
-                .person(responderEntity.isPerson())
-                .enrolled(responderEntity.isEnrolled())
-                .build())
+        return responderDao.allResponders().stream().map(this::toResponder)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public List<Responder> personResponders() {
 
-        return responderDao.personResponders().stream().map(responderEntity -> new Responder.Builder(Long.toString(responderEntity.getId()))
-                .name(responderEntity.getName())
-                .phoneNumber(responderEntity.getPhoneNumber())
-                .latitude(responderEntity.getCurrentPositionLatitude())
-                .longitude(responderEntity.getCurrentPositionLongitude())
-                .boatCapacity(responderEntity.getBoatCapacity())
-                .medicalKit(responderEntity.getMedicalKit())
-                .available(responderEntity.isAvailable())
-                .person(responderEntity.isPerson())
-                .enrolled(responderEntity.isEnrolled())
-                .build())
+        return responderDao.personResponders().stream().map(this::toResponder)
                 .collect(Collectors.toList());
     }
 
