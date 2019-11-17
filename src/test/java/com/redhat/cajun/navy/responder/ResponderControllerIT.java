@@ -83,6 +83,36 @@ public class ResponderControllerIT {
     }
 
     @Test
+    public void testAvailableRespondersOrderedNoOffset() {
+
+        initService();
+
+        given().request().get("/responders/available?limit=10")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+
+        verify(responderService).availableResponders(10,0);
+    }
+
+    @Test
+    public void testAvailableRespondersOrderedWithOffset() {
+
+        initService();
+
+        given().request().get("/responders/available?limit=10&offset=5")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+
+        verify(responderService).availableResponders(10,5);
+    }
+
+    @Test
     public void testAllResponders() {
 
         initService();
@@ -97,6 +127,34 @@ public class ResponderControllerIT {
     }
 
     @Test
+    public void testAllRespondersWithLimitNoOffset() {
+
+        initService();
+
+        given().request().get("/responders?limit=10")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+        verify(responderService).allResponders(10, 0);
+    }
+
+    @Test
+    public void testAllRespondersWithLimitAndOffset() {
+
+        initService();
+
+        given().request().get("/responders?limit=10&offset=2")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+        verify(responderService).allResponders(10, 2);
+    }
+
+    @Test
     public void testPersonResponders() {
 
         initService();
@@ -108,6 +166,34 @@ public class ResponderControllerIT {
                 .contentType(ContentType.JSON)
                 .body("size()", is(2));
         verify(responderService).personResponders();
+    }
+
+    @Test
+    public void testPersonRespondersWithLimitsAndOffset() {
+
+        initService();
+
+        given().request().get("/responders/person?limit=10&offset=2")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+        verify(responderService).personResponders(10, 2);
+    }
+
+    @Test
+    public void testPersonRespondersWithLimitsNoOffset() {
+
+        initService();
+
+        given().request().get("/responders/person?limit=10")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(2));
+        verify(responderService).personResponders(10, 0);
     }
 
     @Test
@@ -278,8 +364,11 @@ public class ResponderControllerIT {
         responders.add(responder2);
 
         when(responderService.availableResponders()).thenReturn(responders);
+        when(responderService.availableResponders(any(Integer.class), any(Integer.class))).thenReturn(responders);
         when(responderService.allResponders()).thenReturn(responders);
+        when(responderService.allResponders(any(Integer.class), any(Integer.class))).thenReturn(responders);
         when(responderService.personResponders()).thenReturn(responders);
+        when(responderService.personResponders(any(Integer.class), any(Integer.class))).thenReturn(responders);
     }
 
 }

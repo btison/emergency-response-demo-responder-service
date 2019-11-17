@@ -5,6 +5,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 
 import com.redhat.cajun.navy.responder.entity.ResponderEntity;
 import org.springframework.stereotype.Component;
@@ -46,12 +47,31 @@ public class ResponderDao {
         return r;
     }
 
+    public List<ResponderEntity> availableResponders(int limit, int offset) {
+        TypedQuery<ResponderEntity> q = entityManager.createNamedQuery("Responder.availableRespondersOrderedByPerson", ResponderEntity.class);
+        if (limit > 0 && offset >= 0) {
+            q.setMaxResults(limit);
+            q.setFirstResult(offset);
+        }
+        return q.getResultList();
+    }
+
     public List<ResponderEntity> availableResponders() {
-        return entityManager.createNamedQuery("Responder.availableResponders", ResponderEntity.class).getResultList();
+        return entityManager.createNamedQuery("Responder.availableResponders", ResponderEntity.class)
+                .getResultList();
     }
 
     public List<ResponderEntity> allResponders() {
         return entityManager.createNamedQuery("Responder.allResponders", ResponderEntity.class).getResultList();
+    }
+
+    public List<ResponderEntity> allResponders(int limit, int offset) {
+        TypedQuery<ResponderEntity> q = entityManager.createNamedQuery("Responder.allResponders", ResponderEntity.class);
+        if (limit > 0 && offset >= 0) {
+            q.setMaxResults(limit);
+            q.setFirstResult(offset);
+        }
+        return q.getResultList();
     }
 
     public List<ResponderEntity> nonPersonResponders() {
@@ -60,6 +80,15 @@ public class ResponderDao {
 
     public List<ResponderEntity> personResponders() {
         return entityManager.createNamedQuery("Responder.persons", ResponderEntity.class).getResultList();
+    }
+
+    public List<ResponderEntity> personResponders(int limit, int offset) {
+        TypedQuery<ResponderEntity> q = entityManager.createNamedQuery("Responder.persons", ResponderEntity.class);
+        if (limit > 0 && offset >= 0) {
+            q.setMaxResults(limit);
+            q.setFirstResult(offset);
+        }
+        return q.getResultList();
     }
 
     public void reset() {
