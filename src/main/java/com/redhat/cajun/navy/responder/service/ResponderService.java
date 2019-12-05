@@ -151,6 +151,27 @@ public class ResponderService {
     }
 
     @Transactional
+    public boolean updateResponderLocation(Responder toUpdate) {
+        ResponderEntity current = responderDao.findById(new Long(toUpdate.getId()));
+        if (current == null) {
+            log.warn("Responder with id '" + toUpdate.getId() + "' not found in the database");
+            return false;
+        }
+        // only update location for responders during a mission
+        if (current.isAvailable()) {
+            log.warn("Responder with id '" + toUpdate.getId() + "' is available. Ignoring location update");
+            return false;
+        }
+        try {
+            ResponderEntity merged = responderDao.merge(fromResponder(toUpdate, current));
+            return true;
+        } catch (Exception e) {
+            log.warn("Exception '" + e.getClass() + "' when updating Responder with id '" + toUpdate.getId() + "'. Responder record is not updated.");
+            return false;
+        }
+    }
+
+    @Transactional
     public void reset() {
         log.info("Reset called");
         responderDao.reset();
