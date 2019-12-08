@@ -228,7 +228,7 @@ public class ResponderService {
             return null;
         }
 
-        return new ResponderEntity.Builder(new Long(responder.getId()), current.getVersion())
+        ResponderEntity.Builder b =  new ResponderEntity.Builder(new Long(responder.getId()), current.getVersion())
                 .name(responder.getName() == null ? current.getName() : responder.getName())
                 .phoneNumber(responder.getPhoneNumber() == null ? current.getPhoneNumber() : responder.getPhoneNumber())
                 .currentPositionLatitude(responder.getLatitude() == null ? current.getCurrentPositionLatitude() : responder.getLatitude())
@@ -236,9 +236,18 @@ public class ResponderService {
                 .boatCapacity(responder.getBoatCapacity() == null ? current.getBoatCapacity() : responder.getBoatCapacity())
                 .medicalKit(responder.isMedicalKit() == null ? current.getMedicalKit() : responder.isMedicalKit())
                 .available(responder.isAvailable() == null ? current.isAvailable() : responder.isAvailable())
-                .person(responder.isPerson() == null ? current.isPerson() : responder.isPerson())
-                .enrolled(responder.isEnrolled() == null ? current.isEnrolled() : responder.isEnrolled())
-                .build();
+                .person(responder.isPerson() == null ? current.isPerson() : responder.isPerson());
+        // Update of person responder: if available is true and enrolled is not set, set enrolled to false.
+        // This state is when the mission of a person responder is completed
+        // Ideally this should be managed from the mission service
+        if (current.isPerson() && responder.isAvailable() == Boolean.TRUE && responder.isEnrolled() == null) {
+            b.enrolled(false);
+        } else if (responder.isEnrolled() == null) {
+            b.enrolled(current.isEnrolled());
+        } else {
+            b.enrolled(responder.isEnrolled());
+        }
+        return b.build();
     }
 
     private Responder toResponder(ResponderEntity responder) {

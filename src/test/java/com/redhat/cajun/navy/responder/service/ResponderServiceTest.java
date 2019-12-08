@@ -638,6 +638,117 @@ public class ResponderServiceTest {
     }
 
     @Test
+    public void testUpdateResponderAsPersonWhenActiveAndEnrolledStateNotSet() {
+
+        Responder toUpdate = new Responder.Builder("1").person(true).available(true).build();
+
+        ResponderEntity currentEntity = new ResponderEntity.Builder(1L, 0L)
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(false)
+                .person(true)
+                .enrolled(true)
+                .build();
+
+        when(responderDao.findById(1L)).thenReturn(currentEntity);
+        when(responderDao.merge(any(ResponderEntity.class))).thenReturn(null);
+
+        service.updateResponder(toUpdate);
+        verify(responderDao).findById(1L);
+        verify(responderDao).merge(entityCaptor.capture());
+        ResponderEntity entity = entityCaptor.getValue();
+        assertThat(entity, notNullValue());
+        assertThat(entity.getId(), equalTo(1L));
+        assertThat(entity.getName(), equalTo("John Doe"));
+        assertThat(entity.getPhoneNumber(), equalTo("111-222-333"));
+        assertThat(entity.getCurrentPositionLatitude(), equalTo(new BigDecimal("30.12345")));
+        assertThat(entity.getCurrentPositionLongitude(), equalTo(new BigDecimal("-70.98765")));
+        assertThat(entity.getBoatCapacity(), equalTo(3));
+        assertThat(entity.getMedicalKit(), equalTo(true));
+        assertThat(entity.isAvailable(), equalTo(true));
+        assertThat(entity.isPerson(), equalTo(true));
+        assertThat(entity.isEnrolled(), equalTo(false));
+    }
+
+    @Test
+    public void testUpdateResponderAsPersonWhenActiveAndEnrolledStateSet() {
+
+        Responder toUpdate = new Responder.Builder("1").person(true).available(true).enrolled(true).build();
+
+        ResponderEntity currentEntity = new ResponderEntity.Builder(1L, 0L)
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(false)
+                .person(true)
+                .enrolled(false)
+                .build();
+
+        when(responderDao.findById(1L)).thenReturn(currentEntity);
+        when(responderDao.merge(any(ResponderEntity.class))).thenReturn(null);
+
+        service.updateResponder(toUpdate);
+        verify(responderDao).findById(1L);
+        verify(responderDao).merge(entityCaptor.capture());
+        ResponderEntity entity = entityCaptor.getValue();
+        assertThat(entity, notNullValue());
+        assertThat(entity.getId(), equalTo(1L));
+        assertThat(entity.getName(), equalTo("John Doe"));
+        assertThat(entity.getPhoneNumber(), equalTo("111-222-333"));
+        assertThat(entity.getCurrentPositionLatitude(), equalTo(new BigDecimal("30.12345")));
+        assertThat(entity.getCurrentPositionLongitude(), equalTo(new BigDecimal("-70.98765")));
+        assertThat(entity.getBoatCapacity(), equalTo(3));
+        assertThat(entity.getMedicalKit(), equalTo(true));
+        assertThat(entity.isAvailable(), equalTo(true));
+        assertThat(entity.isPerson(), equalTo(true));
+        assertThat(entity.isEnrolled(), equalTo(true));
+    }
+
+    @Test
+    public void testUpdateResponderWhenActiveAndEnrolledStateNotSet() {
+
+        Responder toUpdate = new Responder.Builder("1").available(true).build();
+
+        ResponderEntity currentEntity = new ResponderEntity.Builder(1L, 0L)
+                .name("John Doe")
+                .phoneNumber("111-222-333")
+                .currentPositionLatitude(new BigDecimal("30.12345"))
+                .currentPositionLongitude(new BigDecimal("-70.98765"))
+                .boatCapacity(3)
+                .medicalKit(true)
+                .available(false)
+                .person(false)
+                .enrolled(true)
+                .build();
+
+        when(responderDao.findById(1L)).thenReturn(currentEntity);
+        when(responderDao.merge(any(ResponderEntity.class))).thenReturn(null);
+
+        service.updateResponder(toUpdate);
+        verify(responderDao).findById(1L);
+        verify(responderDao).merge(entityCaptor.capture());
+        ResponderEntity entity = entityCaptor.getValue();
+        assertThat(entity, notNullValue());
+        assertThat(entity.getId(), equalTo(1L));
+        assertThat(entity.getName(), equalTo("John Doe"));
+        assertThat(entity.getPhoneNumber(), equalTo("111-222-333"));
+        assertThat(entity.getCurrentPositionLatitude(), equalTo(new BigDecimal("30.12345")));
+        assertThat(entity.getCurrentPositionLongitude(), equalTo(new BigDecimal("-70.98765")));
+        assertThat(entity.getBoatCapacity(), equalTo(3));
+        assertThat(entity.getMedicalKit(), equalTo(true));
+        assertThat(entity.isAvailable(), equalTo(true));
+        assertThat(entity.isPerson(), equalTo(false));
+        assertThat(entity.isEnrolled(), equalTo(true));
+    }
+
+    @Test
     public void testCreateResponder() {
 
         Responder toCreate = new Responder.Builder(null)
