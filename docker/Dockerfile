@@ -1,7 +1,5 @@
-FROM registry.redhat.io/openjdk/openjdk-8-rhel8:1.0
-
-ENV JAVA_APP_DIR=/deployments
+FROM quay.io/btison/ubi8-java8
 
 EXPOSE 8080 8443
 
-COPY target/responder-service-1.1.0-SNAPSHOT.jar /deployments/
+COPY target/responder-service-1.1.0-SNAPSHOT.jar /deployments/app.jar
